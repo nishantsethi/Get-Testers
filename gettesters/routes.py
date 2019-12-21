@@ -97,7 +97,7 @@ def account():
 def new_post():
     form = PostForm()
     if form.validate_on_submit():
-        post = Post(title=form.title.data, link1 =form.link1.data, link2 = form.link2.data, content=form.content.data, author=current_user)
+        post = Post(title=form.title.data, link1 =form.link1.data, link2 = form.link2.data, skills = form.skills.data, content=form.content.data, author=current_user)
         db.session.add(post)
         db.session.commit()
         flash('Your post has been created!', 'success')
@@ -122,6 +122,9 @@ def update_post(post_id):
     if form.validate_on_submit():
         post.title = form.title.data
         post.content = form.content.data
+        post.link1 = form.link1.data
+        post.link2 = form.link2.data
+        post.skills = form.skills.data
         db.session.commit()
         flash('Your post has been updated!', 'success')
         return redirect(url_for('post', post_id=post.id))
@@ -130,8 +133,9 @@ def update_post(post_id):
         form.content.data = post.content
         form.link1.data = post.link1
         form.link2.data = post.link2
-    return render_template('create_post.html', title='Update Post',
-                           form=form, legend='Update Post')
+        form.skills.data = post.skills
+    return render_template('create_post.html', title='Update Product',
+                           form=form, legend='Update Product')
 
 
 @app.route("/post/<int:post_id>/delete", methods=['POST'])

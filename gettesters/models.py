@@ -27,6 +27,7 @@ class Post(db.Model):
     content = db.Column(db.Text, nullable=False)
     link1 = db.Column(db.String())
     link2 = db.Column(db.String())
+    skills = db.Column(db.String())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):

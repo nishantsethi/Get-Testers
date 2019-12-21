@@ -10,6 +10,12 @@
             </div>
             <h2><a class="article-title" href="{{ url_for('post', post_id=post.id) }}">{{ post.title }}</a></h2>
             <p class="article-content">{{ post.content }}</p>
+            <p class="article-content"><a href="{{ post.link1 }}">{{ post.link1 }}</a></p>
+            <div class="card">
+            <div class="card-body">
+              <p class="article-content">Skills : {{ post.skills }}</p>
+            </div>
+          </div>  
           </div>
         </article>
     {% endfor %}

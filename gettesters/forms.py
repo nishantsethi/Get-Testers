@@ -59,6 +59,7 @@ class UpdateAccountForm(FlaskForm):
 class PostForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     content = TextAreaField('Content', validators=[DataRequired()])
-    link1 = StringField('Link1')
-    link2 = StringField('Link2')
+    link1 = StringField('Product/App Link')
+    link2 = StringField('Company Website Link')
+    skills = StringField('Skills')
     submit = SubmitField('Post')
