@@ -6,18 +6,37 @@ from gettesters import app, db, bcrypt
 from gettesters.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
 from gettesters.models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
-
+import pickle
 
 @app.route("/")
 @app.route("/home")
 def home():
-    posts = Post.query.all()
+    if current_user.is_authenticated:
+        kl = current_user.skills
+        kl = kl.replace(" ","").lower()
+        listOfUser = list(kl.split(","))
+        with open("wordvecpickleslash.pickle", 'rb') as f:
+            word_vec = pickle.load(f, encoding="latin1")
+        final = listOfUser
+        for x in listOfUser:
+            res_list = [i[0] for i in word_vec.most_similar(x)[0:5]]
+            final = final + res_list
+        final = final[0:15]
+        # print(final)
+        # posts = Post.query.filter(Post.skills.contains('data'))
+        for i in final:
+            # print(Post.query.filter(Post.skills.contains("web-services")))
+            if Post.query.filter(Post.skills.contains(i)).first() is not None:
+                posts = Post.query.filter(Post.skills.contains(i))
+                break
+
+        # posts = Post.query.filter(Post.skills.in_(final))
+        # print(Post.query.filter(Post.skills.in_(final)))
+    else:
+        posts = Post.query.all()
     return render_template('home.html', posts=posts)
 
 
-@app.route("/about")
-def about():
-    return render_template('about.html', title='About')
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -27,7 +46,7 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        user = User(username=form.username.data, email=form.email.data, password=hashed_password, skills = form.skills.data)
         db.session.add(user)
         db.session.commit()
         flash('Your account has been created! You are now able to log in', 'success')
@@ -81,23 +100,25 @@ def account():
             current_user.image_file = picture_file
         current_user.username = form.username.data
         current_user.email = form.email.data
+        current_user.skills = form.skills.data
         db.session.commit()
         flash('Your account has been updated!', 'success')
         return redirect(url_for('account'))
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
+        form.skills.data = current_user.skills
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
     return render_template('account.html', title='Account',
                            image_file=image_file, form=form)
 
 
 @app.route("/post/new", methods=['GET', 'POST'])
-@login_required
+# @login_required
 def new_post():
     form = PostForm()
     if form.validate_on_submit():
-        post = Post(title=form.title.data, link1 =form.link1.data, link2 = form.link2.data, skills = form.skills.data, content=form.content.data, author=current_user)
+        post = Post(title=form.title.data, link1 =form.link1.data, link2 = form.link2.data, skills = form.skills.data.lower().replace(" ",""), content=form.content.data, author = form.author.data)
         db.session.add(post)
         db.session.commit()
         flash('Your post has been created!', 'success')
@@ -109,7 +130,7 @@ def new_post():
 @app.route("/post/<int:post_id>")
 def post(post_id):
     post = Post.query.get_or_404(post_id)
-    return render_template('post.html', title=post.title, post=post, link1 = post.link1, link2= post.link2)
+    return render_template('post.html', title=post.title, post=post, link1 = post.link1, link2= post.link2, author = post.author)
 
 
 @app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
